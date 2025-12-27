@@ -1,5 +1,48 @@
 # Cat Detector Desktop
 
+Aplicación de escritorio que detecta imágenes de gatos en la propia ventana interna (webview) de la app Electron usando TensorFlow.js. La detección se realiza en el proceso renderer sobre las imágenes que se muestran dentro del `webview` integrado.
+
+## Características
+
+- Monitoreo en la app: analiza las imágenes que carga el `webview` interno (no monitoriza todo el tráfico del sistema por defecto).
+- Detección con IA: utiliza CocoSSD (TensorFlow.js) para identificar la clase `cat`.
+- Navegador integrado: el `webview` es el ámbito de inspección y de aplicación del blur.
+- Notificaciones y estadísticas en vivo: muestra alertas y mantiene un contador de imágenes procesadas y gatos detectados.
+
+## Instalación
+
+```bash
+cd v-light/cat-detector-desktop
+npm install
+```
+
+Nota: `electron` y las dependencias se instalan localmente. TensorFlow.js y CocoSSD se cargan desde los scripts incluidos en `renderer.js` (archivos locales como `tf.min.js` y `coco-ssd.min.js`).
+
+## Uso
+
+```bash
+npm start
+```
+
+La aplicación abre una ventana con un dashboard, un `webview` para navegar y una lista de detecciones.
+
+## Cómo funciona
+
+1. Inspección en renderer: la lógica del renderer analiza imágenes que aparecen en el `webview`.
+2. Clasificación: `coco-ssd` (TensorFlow.js) clasifica cada imagen mostrada.
+3. Acción: si la imagen no contiene un gato, el renderer aplica un filtro CSS `blur` sobre la imagen; si contiene un gato, se muestra una notificación y se registra la detección.
+
+## Notas
+
+- Esta versión no activa un proxy global por defecto. Si necesitas interceptar todo el tráfico del sistema (Chrome, Firefox, etc.), puedo reintroducir esa opción como feature opcional y documentar su uso.
+- Para mejorar rendimiento, la app procesa principalmente imágenes visibles y evita reprocesar imágenes ya analizadas.
+
+## Próximos pasos (opcional)
+
+- Reimplementar proxy global como opción configurable.
+- Añadir controles para ajustar umbral de detección y nivel de blur.
+# Cat Detector Desktop
+
 Aplicación de escritorio que monitorea el tráfico de red y detecta imágenes de gatos usando TensorFlow.js.
 
 ## Características
@@ -121,14 +164,3 @@ Luego actualiza el script de configuración:
 
 Si el proxy queda habilitado y cierras la app, no podrás navegar hasta que lo desactives.
 
-## Próximos pasos
-
-El proxy HTTP ya está implementado! ✅
-
-### Usar con Todo el Sistema:
-1. `npm start` - Inicia la app y el proxy
-2. `.\configure-proxy.ps1 -Enable` - Habilita proxy del sistema
-3. Usa cualquier navegador o aplicación
-4. `.\configure-proxy.ps1 -Disable` - Desactiva cuando termines
-
-Ver [PROXY-GUIDE.md](./PROXY-GUIDE.md) para más detalles.

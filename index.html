@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Detector Desktop</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .status {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 12px;
+    }
+    
+    .nav-bar {
+      display: flex;
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    #urlInput {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+    }
+    
+    #urlInput:focus {
+      outline: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    #goButton {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    #goButton:hover {
+      background: white;
+    }
+    
+    #goButton:active {
+      transform: scale(0.95);
+    }
+    
+    .status.loading::before {
+      content: '⏳ ';
+    }
+    
+    .status.ready::before {
+      content: '✅ ';
+    }
+    
+    main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.8;
+      text-transform: uppercase;
+    }
+    
+    .detections {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      backdrop-filter: blur(10px);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .detections h2 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    
+    .detection-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .detection-item .time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+    
+    .detection-item .type {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    
+    .detection-item .confidence {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .detection-item .url {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      opacity: 0.5;
+    }
+    
+    .empty-state::before {
+      content: '🐱';
+      font-size: 48px;
+      display: block;
+      margin-bottom: 10px;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .screen-capture-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .screen-capture-section h3 {
+      margin: 0 0 10px 0;
+      font-size: 20px;
+    }
+    
+    .screen-capture-section p {
+      margin: 0 0 15px 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .capture-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .btn-capture {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-capture:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .btn-capture.active {
+      background: #ff6b6b;
+      color: white;
+    }
+    
+    .capture-controls label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    
+    .capture-controls select {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: white;
+      color: #333;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    .status-inactive {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .status-active {
+      padding: 6px 12px;
+      background: #4caf50;
+      border-radius: 6px;
+      font-size: 14px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐱 Cat Detector Desktop</h1>
+    <p class="status loading" id="status">Cargando modelo...</p>
+    <div class="nav-bar">
+      <input type="text" id="urlInput" placeholder="Ingresa una URL (ej: https://www.anipedia.net/gatos/)" />
+      <button id="goButton">Ir</button>
+    </div>
+  </header>
+  
+  <main>
+    <!-- Screen capture section removed -->
+    
+    <div id="browserView" style="display: none;">
+      <webview id="webview" src="about:blank" style="width: 100%; height: 300px; border: none; border-radius: 10px; margin-bottom: 20px;"></webview>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="imagesProcessed">0</div>
+        <div class="stat-label">Imágenes Procesadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="catsDetected">0</div>
+        <div class="stat-label">Gatos Detectados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="successRate">0%</div>
+        <div class="stat-label">Tasa de Detección</div>
+      </div>
+    </div>
+    
+    <div class="detections">
+      <h2>Detecciones Recientes</h2>
+      <div id="detectionsList">
+        <div class="empty-state">
+          Esperando detecciones de gatos...
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script src="renderer.js"></script>
+</body>
+</html>
